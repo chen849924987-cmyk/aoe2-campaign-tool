@@ -1,0 +1,9 @@
+__pycache__/
+*.pyc
+*.pyo
+
+# 运行时产物（parser 错误转储 / 调试输出 / 测试中间文件）
+error_file.txt
+_t39_analyze.txt
+_merge_*
+*.log
