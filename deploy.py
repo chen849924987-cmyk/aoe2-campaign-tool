@@ -6,11 +6,16 @@ Mod 管理器根本不显示它——无法启用，进游戏永远加载英文�
 本身再正确也没用。本脚本 copy2 部署 + MD5 校验 + 自动补 info.json。
 
 用法：
-  python deploy.py <翻译后的场景文件> "<mod文件夹名>" [目标场景文件名]
+  python deploy.py <翻译后的场景文件> "<mod文件夹名>" [目标场景文件名] [子树]
 
 - 目标文件名解析优先级：显式第3参数 > 目标目录里已有的唯一 .aoe2scenario >
   源文件名兜底。战役注册表按精确文件名加载场景，**绝不能改名部署**；
   目标目录已有多个场景文件时必须显式指定，否则报错退出。
+- 子树镜像（Exodus/RoR 2026-08-30 踩坑）：RoR 类 mod 的场景不在
+  resources\\_common\\scenario 直下，而在 modes\\<Mode>\\resources\\_common\\scenario
+  子树。本脚本从源路径自动提取该子树并在本地 mod 内镜像，无需手工干预。
+- 源目录含多个场景（多关战役）且未显式指定目标名时直接报错——防止第 2 关
+  起沿用第 1 关文件名造成静默覆盖。
 - 游戏 user 目录：环境变量 AOE2_USER_DIR，或改下方 USER_DIR 常量。
 
 部署后游戏内操作：Mods → 本地 mods → 启用该 mod → 重启游戏。
@@ -48,8 +53,33 @@ def main():
         sys.exit(1)
 
     mod_root = os.path.join(user, "mods", "local", mod)
-    dst_dir = os.path.join(mod_root, "resources", "_common", "scenario")
+
+    # 子树镜像：RoR 类 mod 场景在 modes\<Mode>\resources\_common\scenario，
+    # 普通 mod 在 resources\_common\scenario。自动从源路径提取（modes 优先）；
+    # 源是构建产物时可用第4参数显式指定子树。
+    src_dir = os.path.dirname(os.path.abspath(src))
+    norm_parts = [p for p in os.path.normpath(src_dir).split(os.sep)]
+    low = [p.lower() for p in norm_parts]
+    i_modes = low.index("modes") if "modes" in low else None
+    i_res = low.index("resources") if "resources" in low else None
+    start = i_modes if i_modes is not None else i_res
+    if start is not None:
+        subtree = os.path.join(*norm_parts[start:])
+    else:
+        subtree = os.path.join("resources", "_common", "scenario")
+    if len(sys.argv) > 4:  # 显式子树覆盖（构建产物部署 RoR mod 时必须）
+        subtree = sys.argv[4]
+    dst_dir = os.path.join(mod_root, subtree)
     os.makedirs(dst_dir, exist_ok=True)
+
+    # 源目录场景数自检：多场景战役必须显式指定目标文件名（防静默覆盖）
+    src_scen = [fn for fn in os.listdir(src_dir)
+                if fn.lower().endswith(".aoe2scenario")]
+    if len(src_scen) > 1 and len(sys.argv) <= 3:
+        print("源目录含 %d 个场景文件（多关战役），必须显式指定目标文件名:" % len(src_scen))
+        for fn in src_scen:
+            print("  -", fn)
+        sys.exit(1)
 
     # 目标文件名解析：战役按精确文件名加载场景，绝不能改名部署。
     # ⚠️ 不要用 glob：mod 目录名里的 [936]/[RoR] 会被 glob 当字符类，返回空！

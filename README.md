@@ -11,7 +11,7 @@
 | scenario 版本 | trigger 数据版本 | 实战验证 |
 |---|---|---|
 | 1.54–1.55 | **3.9**  | *Alexander the Great (2P Co-Op)* 全 6 关 |
-| 1.56       | **4.5**  | *Kaesong [936] (2P Co-Op)*（单关；效果 77 int） |
+| 1.56       | **4.5**  | *Kaesong [936] (2P Co-Op)* 单关 + *[RoR] The Story of Exodus (2P Co-Op)* 全 5 关（效果 77 int） |
 | 1.57–1.58  | **4.7**  | *Modu Chanyu (2P Co-Op)* 全 5 关 |
 
 提取 / 回写 / 验证全流程**自动识别版本**；每个文件的 Triggers 段布局模型均通过
@@ -67,6 +67,11 @@ python translate.py "战役.aoe2scenario" texts.json mydict out.aoe2scenario [ms
 
 # 3) 部署（保持原场景文件名 + MD5 校验 + 自动补 info.json）
 python deploy.py out.aoe2scenario "<mod名> 简体中文汉化"
+#    多关战役：每关都必须显式传目标场景文件名（否则报错/静默覆盖）：
+python deploy.py m2_out.aoe2scenario "<mod名> 简体中文汉化" "Mission 2.aoe2scenario"
+#    RoR 类 mod：场景在 modes\<Mode>\ 子树下，本地 mod 必须镜像同样子树。
+#    源路径含 modes\ 时自动提取；源是构建产物时用第 4 参显式指定：
+python deploy.py m1_out.aoe2scenario "<mod名> 简体中文汉化" "Mission 1.aoe2scenario" "modes\Pompeii\resources\_common\scenario"
 #    本地 mod 必须有 info.json 才会出现在游戏 Mod 列表（deploy.py 自动生成）；
 #    每个新 mod 首次部署后：游戏内 Mods → 本地 mods 启用 → 重启游戏。
 #    （不要动 mods/subscribed —— 创意工坊会还原订阅文件）
@@ -89,7 +94,9 @@ covering **trigger data versions 3.9 (scenario 1.54–1.55), 4.5 (scenario 1.56)
 and 4.7 (scenario 1.57–1.58)** — none of them supported by AoE2ScenarioParser
 0.8.4. The pipeline detects the version automatically. Battle-tested on all 6
 missions of *"Alexander the Great (2P Co-Op)"* (3.9), all 5 missions of
-*"Modu Chanyu (2P Co-Op)"* (4.7) and *"Kaesong [936] (2P Co-Op)"* (4.5).
+*"Modu Chanyu (2P Co-Op)"* (4.7), *"Kaesong [936] (2P Co-Op)"* (4.5) and all
+5 missions of *"[RoR] The Story of Exodus (2P Co-Op)"* (4.5, Return-of-Rome
+mod with a `modes\<Mode>\` subtree layout).
 Every supported file passes a byte-identical parse→rebuild roundtrip check.
 
 **Parser bypass**: we monkey-patch `_validate_latest_trigger_data_version` to capture
