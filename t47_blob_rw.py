@@ -1,25 +1,34 @@
 # -*- coding: utf-8 -*-
-"""trigger 4.x (4.7, 场景1.56+) blob 字节级读写器。
+"""trigger 4.x（4.5/4.7）blob 字节级读写器。
 
-模型经 Modu Chanyu M1 全部 114 触发器 roundtrip identical 验证（_probe47.py）。
+4.7 模型经 Modu Chanyu M1 全部 114 触发器 roundtrip identical 验证（_probe47.py）；
+4.5 模型经 Kaesong 全部 102 触发器 roundtrip identical + 暴力扫描唯一解验证
+（batch/_probe_ks.py：HDR∈[25,28]×EFF∈[50,95]×COND∈[24,42] 全量可解析+类型/字符串
+合法性打分，唯一幸存 (27,77,35)）。
 字段名/字段顺序参考 AoE2ScenarioParser master 的 versions/DE/v1.57/structure.json
 （GPL-3.0）——文件格式事实（偏移与字段序）不受版权保护，本模块为独立实现的原始代码。
 
+版本对应关系（场景版本串 = 文件头前 8 字节）：
+  - 场景 1.54/1.55 → trigger 3.9（t39_blob_rw）
+  - 场景 1.56      → trigger 4.5：HDR=27，EFF_INTS=77，COND_INTS=35
+  - 场景 1.57+     → trigger 4.7：HDR=27，EFF_INTS=83，COND_INTS=35
+4.5→4.7 的差异 = 效果区多 6 个 int（decision_id、string_id_option1/2、variable2、
+max_units_affected、hotkey、train_time、local_technology、disable_sound、object_group2、
+object_type2、quantity_float(f32)、facet2、global_sound、issue_group_command、
+queue_action、mutual_diplomacy、building_list、wall_x1..y2、unknown_2/3/4、
+legacy_location_object_reference 中的一部分；其余为 4.5 已有）。条件与头部无差异。
+
 与 3.9 布局差异：
   - trigger 头 26B → 27B：enabled 后多 1B execute_on_load
-  - 效果 60 int → 83 int（static_value_62 变 static_value_81；新增 decision_id、
-    string_id_option1/2、variable2、max_units_affected、hotkey、train_time、
-    local_technology、disable_sound、object_group2、object_type2、quantity_float(f32)、
-    facet2、global_sound、issue_group_command、queue_action、mutual_diplomacy、
-    building_list、wall_x1..y2、unknown_2/3/4、legacy_location_object_reference 等）
+  - 效果 60 int → 77/83 int（static_value_62 变 static_value_74/81 等）
   - 条件 29 int → 35 int（static_value_30 变 static_value_33；新增 decision_id、
     decision_option、variable2、local_technology、object_group2、object_type2、
     unknown_2、unknown_4）
   - 3.9 的条件 fill 字段（sv>=63/64、sv>=31）在 4.x 中已并入固定 int 区，无 fill
   - 字符串区不变：message / sound / ids(数量=ints[6]) / opt1 / opt2
 
-布局：
-  8B 版本(double=4.7) | 1B 未知(0x01) | 4B 触发器数
+布局（4.5 与 4.7 仅效果 int 数不同）：
+  8B 版本(double=4.5/4.7) | 1B 未知(0x01) | 4B 触发器数
   每触发器:
     27B 头: enabled(4) looping(1) execute_on_load(1) desc_stid(4) disp_as_obj(1)
             obj_order(4) make_header(1) short_stid(4) display_on_screen(1)
@@ -27,15 +36,30 @@
     3 个 str32: description / name / short_description
     4B 效果数 | 效果×N | 4B×N 效果显示顺序
     4B 条件数 | 条件×M | 4B×M 条件显示顺序
-  效果   = 83×s32 + str32 message + str32 sound + s32×max(ints[6],0) + str32 opt1 + str32 opt2
+  效果   = EFF_INTS×s32 + str32 message + str32 sound + s32×max(ints[6],0) + str32 opt1 + str32 opt2
   条件   = 35×s32 + str32 xs_function
   尾部   = 4B×触发器数 顺序数组 + 其他数据（变量等，原样保留）
+
+parse_blob 从 blob 前 8 字节自读版本并选择 EFF_INTS，doc["eff_ints"] 记录；
+render_blob 按各效果 ints 列表长度输出，无需额外配置。
 """
 import struct
 
 HDR = 27
-EFF_INTS = 83
+EFF_INTS = 83       # trigger 4.7（场景 1.57+）
+EFF_INTS_45 = 77    # trigger 4.5（场景 1.56）
 COND_INTS = 35
+
+
+def eff_ints_for(version_bytes):
+    """按 blob 头 8 字节版本 double 选择效果 int 数。"""
+    tv = struct.unpack("<d", version_bytes)[0]
+    if abs(tv - 4.5) < 0.05:
+        return EFF_INTS_45
+    if abs(tv - 4.7) < 0.05:
+        return EFF_INTS
+    raise ValueError("unsupported trigger version %.2f —— 未知 4.x 布局，"
+                     "需先做字节级布局探测（参考 batch/_probe_ks.py）" % tv)
 
 
 class Reader:
@@ -80,9 +104,9 @@ class Writer:
         return b"".join(self.parts)
 
 
-def _read_effect(r):
+def _read_effect(r, eff_ints):
     e = {}
-    e["ints"] = [r.s32() for _ in range(EFF_INTS)]
+    e["ints"] = [r.s32() for _ in range(eff_ints)]
     e["message"] = r.str32()
     e["sound"] = r.str32()
     e["ids"] = [r.s32() for _ in range(max(e["ints"][6], 0))]  # number_of_units_selected
@@ -116,10 +140,11 @@ def _write_condition(w, c):
 
 
 def parse_blob(blob):
-    """解析 4.x 触发器 blob，返回结构 dict。"""
+    """解析 4.x 触发器 blob，返回结构 dict。版本从 blob 前 8 字节自读。"""
     r = Reader(blob)
     doc = {}
     doc["version_bytes"] = r.take(8)
+    doc["eff_ints"] = eff_ints_for(doc["version_bytes"])
     doc["magic0"] = r.b[r.p:r.p + 1]
     r.p += 1
     doc["n_triggers"] = r.s32()
@@ -132,7 +157,7 @@ def parse_blob(blob):
         t["name"] = r.str32()
         t["short_description"] = r.str32()
         n_eff = r.s32()
-        t["effects"] = [_read_effect(r) for _ in range(n_eff)]
+        t["effects"] = [_read_effect(r, doc["eff_ints"]) for _ in range(n_eff)]
         t["eff_order"] = [r.s32() for _ in range(n_eff)]
         n_cond = r.s32()
         t["conditions"] = [_read_condition(r) for _ in range(n_cond)]

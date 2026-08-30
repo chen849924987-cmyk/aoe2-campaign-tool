@@ -1,4 +1,4 @@
-# AoE2 DE Campaign Translate Tool (trigger 3.9 & 4.7)
+# AoE2 DE Campaign Translate Tool (trigger 3.9, 4.5 & 4.7)
 
 [中文](#中文说明) | [English](#english)
 
@@ -11,7 +11,8 @@
 | scenario 版本 | trigger 数据版本 | 实战验证 |
 |---|---|---|
 | 1.54–1.55 | **3.9**  | *Alexander the Great (2P Co-Op)* 全 6 关 |
-| 1.56–1.58 | **4.7**  | *Modu Chanyu (2P Co-Op)* 全 5 关 |
+| 1.56       | **4.5**  | *Kaesong [936] (2P Co-Op)*（单关；效果 77 int） |
+| 1.57–1.58  | **4.7**  | *Modu Chanyu (2P Co-Op)* 全 5 关 |
 
 提取 / 回写 / 验证全流程**自动识别版本**；每个文件的 Triggers 段布局模型均通过
 逐字节 roundtrip（解析→重建与原文件完全一致）验证。
@@ -28,8 +29,8 @@
    （3.9 魔数=0，4.7 魔数=1，判据通用）。
 3. **字节级读写**（`t39_blob_rw` / `t47_blob_rw`，`get_blob_rw(tv)` 按版本选择）：
    按逆向出的布局解析/重建 Triggers blob（`parse_blob` / `render_blob`，含逐字节
-   roundtrip 自检）。两版主要差异：trigger 头 26B→27B、效果 60→83 int、
-   条件 29→35 int、版本门控 fill 字段并入固定 int 区；详见各模块 docstring。
+   roundtrip 自检）。各版主要差异：trigger 头 26B→27B、效果 60→77/83 int
+   （4.5=77、4.7=83）、条件 29→35 int、版本门控 fill 字段并入固定 int 区；详见各模块 docstring。
 4. **回写**（`t39_build.build`）：替换 blob → 字节定位 Messages 区段（str16 字段，
    支持开场提示/侦察报告等）→ 重新 raw-deflate 压缩 → 截取原文件头部拼接输出。
 
@@ -39,7 +40,7 @@
 |---|---|
 | `analyze_t39.py` | grab 解压数据（parser-bypass）、定位 Triggers 段、按版本选择读写器 |
 | `t39_blob_rw.py` | trigger 3.9 blob 的字节级解析/重建（核心） |
-| `t47_blob_rw.py` | trigger 4.7（场景 1.56+）blob 的字节级解析/重建（核心） |
+| `t47_blob_rw.py` | trigger 4.5/4.7（场景 1.56+）blob 的字节级解析/重建（核心，按版本自适应效果 int 数） |
 | `t39_extract.py` | 导出全部可翻译文本为 JSON（版本自适应） |
 | `t39_build.py`   | 把翻译写回战役文件（含 Messages 区段替换，版本自适应） |
 | `translate.py`   | 通用引擎：字典匹配 → build → 自验证（版本自适应） |
@@ -81,10 +82,11 @@ python translate.py "战役.aoe2scenario" texts.json mydict out.aoe2scenario [ms
 ## English
 
 Text extraction / translation / rebuild toolchain for AoE2 DE workshop campaigns,
-covering **trigger data versions 3.9 (scenario 1.54–1.55) and 4.7 (scenario
-1.56–1.58)** — both unsupported by AoE2ScenarioParser 0.8.4. The pipeline detects
-the version automatically. Battle-tested on all 6 missions of *"Alexander the
-Great (2P Co-Op)"* (3.9) and all 5 missions of *"Modu Chanyu (2P Co-Op)"* (4.7).
+covering **trigger data versions 3.9 (scenario 1.54–1.55), 4.5 (scenario 1.56)
+and 4.7 (scenario 1.57–1.58)** — none of them supported by AoE2ScenarioParser
+0.8.4. The pipeline detects the version automatically. Battle-tested on all 6
+missions of *"Alexander the Great (2P Co-Op)"* (3.9), all 5 missions of
+*"Modu Chanyu (2P Co-Op)"* (4.7) and *"Kaesong [936] (2P Co-Op)"* (4.5).
 Every supported file passes a byte-identical parse→rebuild roundtrip check.
 
 **Parser bypass**: we monkey-patch `_validate_latest_trigger_data_version` to capture
