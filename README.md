@@ -44,6 +44,7 @@
 | `t39_extract.py` | 导出全部可翻译文本为 JSON（版本自适应） |
 | `t39_build.py`   | 把翻译写回战役文件（含 Messages 区段替换，版本自适应） |
 | `translate.py`   | 通用引擎：字典匹配 → build → 自验证（版本自适应） |
+| `deploy.py`      | 部署场景到 `mods\local`：保持原文件名 + MD5 校验 + 自动补 info.json（缺失时游戏 Mod 列表不显示） |
 | `scnver.py`      | 场景版本探测（纯 zlib，无需安装 parser） |
 | `selftest.py`    | roundtrip 自检：验证工具对给定场景的支持是否完整 |
 | `dict_common.py` | 通用字典模板（示例条目可改） |
@@ -64,8 +65,10 @@ python t39_extract.py "战役.aoe2scenario" texts.json
 # 2) 建字典 mydict.py（见 dict_common.py 模板），然后一键翻译+回写+验证
 python translate.py "战役.aoe2scenario" texts.json mydict out.aoe2scenario [msgs]
 
-# 3) 部署：把 out.aoe2scenario 放入
-#    <游戏目录>/mods/local/<mod名> 简体中文汉化/resources/_common/scenario/
+# 3) 部署（保持原场景文件名 + MD5 校验 + 自动补 info.json）
+python deploy.py out.aoe2scenario "<mod名> 简体中文汉化"
+#    本地 mod 必须有 info.json 才会出现在游戏 Mod 列表（deploy.py 自动生成）；
+#    每个新 mod 首次部署后：游戏内 Mods → 本地 mods 启用 → 重启游戏。
 #    （不要动 mods/subscribed —— 创意工坊会还原订阅文件）
 ```
 
