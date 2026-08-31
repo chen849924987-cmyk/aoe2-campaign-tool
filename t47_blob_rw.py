@@ -12,6 +12,9 @@
   - 场景 1.54/1.55 → trigger 3.9（t39_blob_rw）
   - 场景 1.56      → trigger 4.5：HDR=27，EFF_INTS=77，COND_INTS=35
   - 场景 1.57+     → trigger 4.7：HDR=27，EFF_INTS=83，COND_INTS=35
+  - 场景 1.58 后期 → trigger 4.9：HDR=27，EFF_INTS=85，COND_INTS=35
+    （Jarls of Jelling / Golden Horde II 2026-08-31 实测；= 4.7 + 效果区 2 个新 int，
+    且新效果类型可 >95，探测脚本类型白名单要放宽——batch/_probe_jj.py 踩过）
 4.5→4.7 的差异 = 效果区多 6 个 int（decision_id、string_id_option1/2、variable2、
 max_units_affected、hotkey、train_time、local_technology、disable_sound、object_group2、
 object_type2、quantity_float(f32)、facet2、global_sound、issue_group_command、
@@ -48,6 +51,7 @@ import struct
 HDR = 27
 EFF_INTS = 83       # trigger 4.7（场景 1.57+）
 EFF_INTS_45 = 77    # trigger 4.5（场景 1.56）
+EFF_INTS_49 = 85    # trigger 4.9（场景 1.58 后期版，Jarls/Golden Horde II 实测）
 COND_INTS = 35
 
 
@@ -58,6 +62,8 @@ def eff_ints_for(version_bytes):
         return EFF_INTS_45
     if abs(tv - 4.7) < 0.05:
         return EFF_INTS
+    if abs(tv - 4.9) < 0.05:
+        return EFF_INTS_49
     raise ValueError("unsupported trigger version %.2f —— 未知 4.x 布局，"
                      "需先做字节级布局探测（参考 batch/_probe_ks.py）" % tv)
 

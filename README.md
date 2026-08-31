@@ -1,4 +1,4 @@
-# AoE2 DE Campaign Translate Tool (trigger 3.9, 4.5 & 4.7)
+# AoE2 DE Campaign Translate Tool (trigger 3.9, 4.5, 4.7 & 4.9)
 
 [中文](#中文说明) | [English](#english)
 
@@ -13,6 +13,7 @@
 | 1.54–1.55 | **3.9**  | *Alexander the Great (2P Co-Op)* 全 6 关 |
 | 1.56       | **4.5**  | *Kaesong [936] (2P Co-Op)* 单关 + *[RoR] The Story of Exodus (2P Co-Op)* 全 5 关（效果 77 int） |
 | 1.57–1.58  | **4.7**  | *Modu Chanyu (2P Co-Op)* 全 5 关 |
+| 1.58(后期) | **4.9**  | *Jarls of Jelling [Redone] (2P Co-Op)* 全 3 关 + *[Redone] The Golden Horde - II (2P Co-Op)* 全 3 关（= 4.7 + 效果区 2 个新 int，共 85；效果类型可 >95） |
 
 提取 / 回写 / 验证全流程**自动识别版本**；每个文件的 Triggers 段布局模型均通过
 逐字节 roundtrip（解析→重建与原文件完全一致）验证。
@@ -29,8 +30,8 @@
    （3.9 魔数=0，4.7 魔数=1，判据通用）。
 3. **字节级读写**（`t39_blob_rw` / `t47_blob_rw`，`get_blob_rw(tv)` 按版本选择）：
    按逆向出的布局解析/重建 Triggers blob（`parse_blob` / `render_blob`，含逐字节
-   roundtrip 自检）。各版主要差异：trigger 头 26B→27B、效果 60→77/83 int
-   （4.5=77、4.7=83）、条件 29→35 int、版本门控 fill 字段并入固定 int 区；详见各模块 docstring。
+   roundtrip 自检）。各版主要差异：trigger 头 26B→27B、效果 60→77/83/85 int
+   （4.5=77、4.7=83、4.9=85）、条件 29→35 int、版本门控 fill 字段并入固定 int 区；详见各模块 docstring。
 4. **回写**（`t39_build.build`）：替换 blob → 字节定位 Messages 区段（str16 字段，
    支持开场提示/侦察报告等）→ 重新 raw-deflate 压缩 → 截取原文件头部拼接输出。
 
@@ -90,8 +91,8 @@ python deploy.py m1_out.aoe2scenario "<mod名> 简体中文汉化" "Mission 1.ao
 ## English
 
 Text extraction / translation / rebuild toolchain for AoE2 DE workshop campaigns,
-covering **trigger data versions 3.9 (scenario 1.54–1.55), 4.5 (scenario 1.56)
-and 4.7 (scenario 1.57–1.58)** — none of them supported by AoE2ScenarioParser
+covering **trigger data versions 3.9 (scenario 1.54–1.55), 4.5 (scenario 1.56),
+4.7 (scenario 1.57–1.58) and 4.9 (scenario 1.58 late)** — none of them supported by AoE2ScenarioParser
 0.8.4. The pipeline detects the version automatically. Battle-tested on all 6
 missions of *"Alexander the Great (2P Co-Op)"* (3.9), all 5 missions of
 *"Modu Chanyu (2P Co-Op)"* (4.7), *"Kaesong [936] (2P Co-Op)"* (4.5) and all
