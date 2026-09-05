@@ -27,6 +27,21 @@
 提取 / 回写 / 验证全流程**自动识别版本**；每个文件的 Triggers 段布局模型均通过
 逐字节 roundtrip（解析→重建与原文件完全一致）验证。
 
+### 更新日志 / Changelog
+
+**2026-09-05（晚）**
+- 新增 **`langcheck.py`**：新订阅战役语言体检一条龙（ASP 三层中文占比统计，os.walk 规避方括号路径坑；ASP 硬拦的文件建议改用 `t39_extract.py`/`scnver.py` 兜底）。
+- 实战验证扩充：*Itzcoatl [2P Co-Op]* 全 5 关（**4.9**，效果 85 int）、*[RoR] Ave Caesar (2P Co-Op)* 全 4 关（4.7，RoR `modes\Pompeii` 子树）、*Survive the Night (Coop)* 单关（4.7）、*Wallace 2 player coop campaign* 4 关（4.5 混版）——blob 链新增四役 11 关全绿。
+- **trigger 4.1 澄清**：blob 头版本 double=4.1 常被 `%.2f` 误显为 "4.10"。场景 1.54 + trigger 4.1（*Aegidius* / *Cortes M5-M6* / *Wallace M3-M6* / *征服者战役合作版* 1.41 全 8 关）实测 **ASP 0.8.5 可读可写、roundtrip 保真**，走 ASP 旧链即可，无需字节级逆向；但**同进程混写 1.56 与 1.54+4.1 文件会触发 ASP 结构缓存污染**（`_eff_filler_1` 校验炸）——混版本 mod 必须逐文件单进程处理。
+- 收尾门槛升级：部署回归一律 `audit_cn.py --summary`（三层）+ 旧格式 `_verifylocal2.py` 补充。
+- 仓库新增 `skill/` 目录：沉淀完整工作流与坑位速查（pitfalls）/ 译名表（glossaries）/ 格式细节（format）。
+
+**2026-09-05**
+- `audit_cn.py` 修复 `======]HINTS[======` 分隔符误报；`trigdesc_scan.py` / `audit_cn.py` 三层审计上线（Modu Chanyu 任务栏/悬浮窗 86 条整体漏翻的教训）。
+
+**2026-08-31**
+- trigger **4.9** 支持（场景 1.58 后期版，效果 85 int = 4.7 + 2 新 int，效果类型可 >95）；ASP 支持口径查证结论入 README。
+
 ### 工作原理（parser-bypass）
 
 对 3.9：ASP 0.8.5 实测仍在版本校验处抛 `UnsupportedVersionError`（1.54 场景的旧
@@ -61,8 +76,9 @@
 | `selftest.py`    | roundtrip 自检：验证工具对给定场景的支持是否完整 |
 | `trigdesc_scan.py` | 触发器**任务文本**扫描器：任务栏(display_as_objective)/右上角悬浮窗(display_on_screen)/分节标题(make_header) 的 description/short_description 残留英文检查 + `--work` 工作单导出（版本自适应） |
 | `audit_cn.py`    | 部署回归审计：三层玩家可见文本（效果 message / 触发器任务文本 / Messages 六字段）英文残留一次查清（版本自适应，支持整目录 `--summary`） |
+| `langcheck.py`   | **新订阅战役语言体检**：对 mod 目录（含 `modes\` 子树，方括号路径安全）全部场景按三层统计中文占比，逐文件输出 ENGLISH/MIXED——动工前判断"是不是英文战役"用 |
 | `dict_common.py` | 通用字典模板（示例条目可改） |
-| `_test_dict.py`  | 最小字典示例 |
+| `skill/`         | 完整工作流技能包（SKILL.md + references/{pitfalls,glossaries,format}.md），可直接作为 AI Agent 技能使用 |
 
 ### 快速上手
 
