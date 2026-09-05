@@ -6,7 +6,8 @@
 ## 中文说明
 
 针对 **Age of Empires II: Definitive Edition** 创意工坊战役的文本提取 /
-翻译 / 回写工具链，覆盖官方 AoE2ScenarioParser 0.8.4 不支持的新版触发器：
+翻译 / 回写工具链，覆盖官方 AoE2ScenarioParser 0.8.4 不支持、0.8.5 可读但
+无法字节级保真回写的触发器布局：
 
 | scenario 版本 | trigger 数据版本 | 实战验证 |
 |---|---|---|
@@ -15,12 +16,22 @@
 | 1.57–1.58  | **4.7**  | *Modu Chanyu (2P Co-Op)* 全 5 关 |
 | 1.58(后期) | **4.9**  | *Jarls of Jelling [Redone] (2P Co-Op)* 全 3 关 + *[Redone] The Golden Horde - II (2P Co-Op)* 全 3 关（= 4.7 + 效果区 2 个新 int，共 85；效果类型可 >95） |
 
+> **ASP 支持口径注**（2026-08-31 实测，详见仓库外 `_asp_probe*.py` / `_asp_live_test*.py`）：
+> AoE2ScenarioParser README 的"支持 1.36→1.58"指**场景版本**——它按场景版本选
+> `versions/DE/v<场景版本>/structure.json` 布局（v1.56=77 / v1.57=83 / v1.58=85 效果 int），
+> 与文件里 trigger_version 数值无关。0.8.5 可正确**读取** 4.5/4.7/4.9（message 与本工具链
+> 逐条一致）；但 3.9 属于 1.54 场景的"旧结构"，被 `_validate_latest_trigger_data_version`
+> 硬拦（`UnsupportedVersionError`，任何 ASP 版本皆然），且 ASP 写回经重新压缩无法做
+> MD5 级保真验证——故本工具链对全部版本均按字节级读写实现。
+
 提取 / 回写 / 验证全流程**自动识别版本**；每个文件的 Triggers 段布局模型均通过
 逐字节 roundtrip（解析→重建与原文件完全一致）验证。
 
 ### 工作原理（parser-bypass）
 
-`AoE2ScenarioParser 0.8.4` 解析 trigger 3.9/4.7 时会直接抛异常退出。本工具链的思路：
+对 3.9：ASP 0.8.5 实测仍在版本校验处抛 `UnsupportedVersionError`（1.54 场景的旧
+结构被硬拦，任何 ASP 版本皆然）；对 4.5/4.7/4.9：ASP 0.8.5 起可正确读取，但其
+写回经重新压缩、无法字节级保真。本工具链的思路：
 
 1. **grab**（`t39_build.grab`）：猴子补丁 `_validate_latest_trigger_data_version`，
    在 parser 读完 FileHeader、拿到 **解压后的完整文件数据** 后借校验回调抛出自定义
@@ -48,13 +59,15 @@
 | `deploy.py`      | 部署场景到 `mods\local`：保持原文件名 + MD5 校验 + 自动补 info.json（缺失时游戏 Mod 列表不显示） |
 | `scnver.py`      | 场景版本探测（纯 zlib，无需安装 parser） |
 | `selftest.py`    | roundtrip 自检：验证工具对给定场景的支持是否完整 |
+| `trigdesc_scan.py` | 触发器**任务文本**扫描器：任务栏(display_as_objective)/右上角悬浮窗(display_on_screen)/分节标题(make_header) 的 description/short_description 残留英文检查 + `--work` 工作单导出（版本自适应） |
+| `audit_cn.py`    | 部署回归审计：三层玩家可见文本（效果 message / 触发器任务文本 / Messages 六字段）英文残留一次查清（版本自适应，支持整目录 `--summary`） |
 | `dict_common.py` | 通用字典模板（示例条目可改） |
 | `_test_dict.py`  | 最小字典示例 |
 
 ### 快速上手
 
 ```bash
-pip install AoE2ScenarioParser==0.8.4
+pip install "AoE2ScenarioParser>=0.8.4"   # 0.8.4/0.8.5 实测均可用（只借解压/FileHeader 能力）
 
 # 0) 看场景版本 / 先自检工具对该文件的支持（逐字节 roundtrip）
 python scnver.py "战役.aoe2scenario"
@@ -76,6 +89,11 @@ python deploy.py m1_out.aoe2scenario "<mod名> 简体中文汉化" "Mission 1.ao
 #    本地 mod 必须有 info.json 才会出现在游戏 Mod 列表（deploy.py 自动生成）；
 #    每个新 mod 首次部署后：游戏内 Mods → 本地 mods 启用 → 重启游戏。
 #    （不要动 mods/subscribed —— 创意工坊会还原订阅文件）
+
+# 4) 部署后回归审计（三层：效果消息 / 任务栏+悬浮窗触发器文本 / Messages 六字段）
+python audit_cn.py --summary "<local mod 目录>"     # 全绿才算完
+#    ⚠️ 只翻效果 message 会整体漏掉任务栏/悬浮窗（触发器 description 字段，
+#    t39_extract 导出的 desc/short 条目）——Modu Chanyu 全 5 关 86 条曾整体漏翻。
 ```
 
 ### ⚠️ 翻译红线
@@ -92,8 +110,11 @@ python deploy.py m1_out.aoe2scenario "<mod名> 简体中文汉化" "Mission 1.ao
 
 Text extraction / translation / rebuild toolchain for AoE2 DE workshop campaigns,
 covering **trigger data versions 3.9 (scenario 1.54–1.55), 4.5 (scenario 1.56),
-4.7 (scenario 1.57–1.58) and 4.9 (scenario 1.58 late)** — none of them supported by AoE2ScenarioParser
-0.8.4. The pipeline detects the version automatically. Battle-tested on all 6
+4.7 (scenario 1.57–1.58) and 4.9 (scenario 1.58 late)**. 3.9 is rejected outright by
+AoE2ScenarioParser (old structure of scenario 1.54, `UnsupportedVersionError`, verified
+on 0.8.5); 4.5/4.7/4.9 became readable in ASP 0.8.5 (layouts are selected per scenario
+version), but ASP's re-compressing writer cannot guarantee byte-identical output.
+The pipeline detects the version automatically. Battle-tested on all 6
 missions of *"Alexander the Great (2P Co-Op)"* (3.9), all 5 missions of
 *"Modu Chanyu (2P Co-Op)"* (4.7), *"Kaesong [936] (2P Co-Op)"* (4.5) and all
 5 missions of *"[RoR] The Story of Exodus (2P Co-Op)"* (4.5, Return-of-Rome
@@ -101,8 +122,9 @@ mod with a `modes\<Mode>\` subtree layout).
 Every supported file passes a byte-identical parse→rebuild roundtrip check.
 
 **Parser bypass**: we monkey-patch `_validate_latest_trigger_data_version` to capture
-the decompressed file right after the parser reads the FileHeader (it aborts later on
-new trigger versions), locate the Triggers section via a `<f64 version><u8 magic><i32>`
+the decompressed file right after the parser reads the FileHeader (with 3.9 the parser
+aborts at that very check; for 4.x we bypass its object model in favour of byte-level
+control), locate the Triggers section via a `<f64 version><u8 magic><i32>`
 anchor, then parse/rebuild the blob byte-by-byte (`t39_blob_rw.py` / `t47_blob_rw.py`,
 layout documented in their docstrings, verified by byte-identical roundtrip). Messages
 section (hints/scouts, str16 fields) is located by raw byte search and replaced before
