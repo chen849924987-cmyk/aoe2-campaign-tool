@@ -27,7 +27,7 @@ from analyze_t39 import find_triggers_offset, get_blob_rw
 CJK = re.compile(r"[\u4e00-\u9fff]")
 EN = re.compile(r"[A-Za-z]{2,}")
 PLACEHOLDER = re.compile(r"<[^<>]*>")
-SEPARATOR = re.compile(r"^[=\-*\d\s.:;|]+$")
+SEPARATOR = re.compile(r"^[=\-*\d\s.:;|\[\]]+$")
 TRANSABLE = {3, 20, 26, 37, 44, 48, 51, 59, 60, 65, 66}
 FIELDS = ("ascii_instructions", "ascii_hints", "ascii_victory", "ascii_loss",
           "ascii_history", "ascii_scouts")
