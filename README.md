@@ -29,6 +29,9 @@
 
 ### 更新日志 / Changelog
 
+**2026-09-06**
+- 新增 **`perf_probe.py`**：联机地图性能体检（源自 Modu Chanyu M2"编队下令双方卡死"诊断——lockstep 机制下重帧同步卡死；实测证明该役开销来自 220×220 大地图 + 约 1 万预置对象 + 4 个内置 AI，而非触发器虚空产单位）。支持单文件与 `--dir` 逐文件子进程批量（规避 ASP 跨版本状态污染）。
+
 **2026-09-05（晚）**
 - 新增 **`langcheck.py`**：新订阅战役语言体检一条龙（ASP 三层中文占比统计，os.walk 规避方括号路径坑；ASP 硬拦的文件建议改用 `t39_extract.py`/`scnver.py` 兜底）。
 - 实战验证扩充：*Itzcoatl [2P Co-Op]* 全 5 关（**4.9**，效果 85 int）、*[RoR] Ave Caesar (2P Co-Op)* 全 4 关（4.7，RoR `modes\Pompeii` 子树）、*Survive the Night (Coop)* 单关（4.7）、*Wallace 2 player coop campaign* 4 关（4.5 混版）——blob 链新增四役 11 关全绿。
@@ -77,6 +80,7 @@
 | `trigdesc_scan.py` | 触发器**任务文本**扫描器：任务栏(display_as_objective)/右上角悬浮窗(display_on_screen)/分节标题(make_header) 的 description/short_description 残留英文检查 + `--work` 工作单导出（版本自适应） |
 | `audit_cn.py`    | 部署回归审计：三层玩家可见文本（效果 message / 触发器任务文本 / Messages 六字段）英文残留一次查清（版本自适应，支持整目录 `--summary`） |
 | `langcheck.py`   | **新订阅战役语言体检**：对 mod 目录（含 `modes\` 子树，方括号路径安全）全部场景按三层统计中文占比，逐文件输出 ENGLISH/MIXED——动工前判断"是不是英文战役"用 |
+| `perf_probe.py`  | **联机地图性能体检**：统计场景中与模拟/寻路开销相关的硬指标（地图尺寸、各类预置对象数按玩家分组、地图外单位、触发器/循环触发/Create Object 数量、内置 AI 数量与 defrule 规模）。AoE2 DE 联机为 lockstep 确定性模拟，任何一端的重帧都会让双方同步卡顿——排查"合作役后期双方卡死"先看这里。单文件分析或 `--dir` 逐文件子进程批量（规避 ASP 跨版本状态污染） |
 | `dict_common.py` | 通用字典模板（示例条目可改） |
 | `skill/`         | 完整工作流技能包（SKILL.md + references/{pitfalls,glossaries,format}.md），可直接作为 AI Agent 技能使用 |
 
