@@ -21,7 +21,7 @@ except Exception:
     pass
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from t39_build import grab
+import grab_any
 from analyze_t39 import find_triggers_offset, get_blob_rw
 
 CJK = re.compile(r"[\u4e00-\u9fff]")
@@ -35,11 +35,12 @@ FLAGS_4X = {"obj": 10, "header": 15, "screen": 20}
 def scan_file(path):
     """返回 (bad_list, n_triggers, err)。bad_list 元素: (ti, flags, field, text)"""
     try:
-        data, tv, secs = grab(path)
+        g = grab_any.grab_any(path)
+        data, tv, secs = g.data, g.tv, g.sections
         if data is None:
             return None, 0, "grab failed (old format?)"
         rw = get_blob_rw(tv)
-        off, _, cnt = find_triggers_offset(data, tv or 3.9)[0]
+        off, _, cnt = grab_any.pick_anchor(data, tv or 3.9)
         doc = rw.parse_blob(data[off:])
     except Exception as ex:
         return None, 0, "parse error: %s" % ex

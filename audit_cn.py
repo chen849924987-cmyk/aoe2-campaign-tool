@@ -21,8 +21,9 @@ except Exception:
     pass
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from t39_build import grab
-from analyze_t39 import find_triggers_offset, get_blob_rw
+import grab_any
+import msgs_rw
+from analyze_t39 import get_blob_rw
 
 CJK = re.compile(r"[\u4e00-\u9fff]")
 EN = re.compile(r"[A-Za-z]{2,}")
@@ -42,15 +43,15 @@ def _has_en(s):
 def audit_file(path):
     """返回 (residual_dict, n_triggers, err)。residual_dict: {layer: [(loc, text)]}"""
     try:
-        data, tv, secs = grab(path)
-        if data is None:
-            return None, 0, "grab failed (old format?)"
+        g = grab_any.grab_any(path)
+        data, tv, secs = g.data, g.tv, g.sections
         rw = get_blob_rw(tv)
-        off, _, cnt = find_triggers_offset(data, tv or 3.9)[0]
+        off, _, cnt = grab_any.pick_anchor(data, tv or 3.9)
         doc = rw.parse_blob(data[off:])
     except Exception as ex:
         return None, 0, "parse error: %s" % ex
     res = {"effects": [], "trigdesc": [], "msgs": []}
+    FW = ("\uff08", "\uff09")  # 全角括号：游戏字体缺字形，必须半角（2026-10-27 固化检查）
     for ti, t in enumerate(doc["triggers"]):
         for ei, e in enumerate(t["effects"]):
             m = e["message"]
@@ -59,6 +60,8 @@ def audit_file(path):
             if e["ints"][0] not in TRANSABLE:
                 continue
             s = m.decode("utf-8", "replace").rstrip("\x00")
+            if any(c in s for c in FW):
+                res["effects"].append(("t%d.eff%d [%d] 全角括号" % (ti, ei, e["ints"][0]), s))
             if _has_en(s):
                 res["effects"].append(("t%d.eff%d [%d]" % (ti, ei, e["ints"][0]), s))
         h = t["head_raw"]
@@ -69,12 +72,21 @@ def audit_file(path):
                 if not v.strip(b"\x00"):
                     continue
                 s = v.decode("utf-8", "replace").rstrip("\x00")
+                if any(c in s for c in FW):
+                    res["trigdesc"].append(("t%d.%s 全角括号" % (ti, fld), s))
                 if _has_en(s):
                     res["trigdesc"].append(("t%d.%s" % (ti, fld), s))
-    msgs = secs.get("Messages") if isinstance(secs, dict) else None
-    if msgs is not None:
+    mvals = None
+    if isinstance(secs, dict) and secs.get("Messages") is not None:
+        mvals = {fl: (getattr(secs["Messages"], fl, "") or "") for fl in FIELDS}
+    else:
+        try:
+            mvals = {("ascii_" + f): v for f, v in msgs_rw.read_fields(data, limit_off=off)[0].items()}
+        except ValueError:
+            mvals = None
+    if mvals is not None:
         for fl in FIELDS:
-            v = getattr(msgs, fl, "") or ""
+            v = mvals.get(fl, "") or ""
             if not v.strip("\x00 \r\n"):
                 continue
             for ln in v.replace("\r", "\n").split("\n"):

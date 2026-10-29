@@ -15,6 +15,10 @@
   - 场景 1.58 后期 → trigger 4.9：HDR=27，EFF_INTS=85，COND_INTS=35
     （Jarls of Jelling / Golden Horde II 2026-08-31 实测；= 4.7 + 效果区 2 个新 int，
     且新效果类型可 >95，探测脚本类型白名单要放宽——batch/_probe_jj.py 踩过）
+  - 场景 1.59      → trigger 5.0：HDR=27，EFF_INTS=85（不变），COND_INTS=36
+    （Henry the Fowler / Karluks 2026-10-26 双役 roundtrip identical + ASP 0.9.8
+    structure.json 静态核对：条件区末尾新增 allow_in_fog 1 个 int，效果/头部不变；
+    blob 之后还有 Files 等区段，parse 的 rest 原样保留即可）
 4.5→4.7 的差异 = 效果区多 6 个 int（decision_id、string_id_option1/2、variable2、
 max_units_affected、hotkey、train_time、local_technology、disable_sound、object_group2、
 object_type2、quantity_float(f32)、facet2、global_sound、issue_group_command、
@@ -52,7 +56,9 @@ HDR = 27
 EFF_INTS = 83       # trigger 4.7（场景 1.57+）
 EFF_INTS_45 = 77    # trigger 4.5（场景 1.56）
 EFF_INTS_49 = 85    # trigger 4.9（场景 1.58 后期版，Jarls/Golden Horde II 实测）
+EFF_INTS_50 = 85    # trigger 5.0（场景 1.59，效果区与 4.9 相同）
 COND_INTS = 35
+COND_INTS_50 = 36   # trigger 5.0：条件区末尾新增 allow_in_fog
 
 
 def eff_ints_for(version_bytes):
@@ -62,10 +68,18 @@ def eff_ints_for(version_bytes):
         return EFF_INTS_45
     if abs(tv - 4.7) < 0.05:
         return EFF_INTS
-    if abs(tv - 4.9) < 0.05:
+    if abs(tv - 4.9) < 0.05 or abs(tv - 5.0) < 0.05:
         return EFF_INTS_49
-    raise ValueError("unsupported trigger version %.2f —— 未知 4.x 布局，"
-                     "需先做字节级布局探测（参考 batch/_probe_ks.py）" % tv)
+    raise ValueError("unsupported trigger version %.2f —— 未知 4.x/5.x 布局，"
+                     "需先做字节级布局探测（参考 batch/_probe_ks.py / _probe_t50.py）" % tv)
+
+
+def cond_ints_for(version_bytes):
+    """按 blob 头 8 字节版本 double 选择条件 int 数。"""
+    tv = struct.unpack("<d", version_bytes)[0]
+    if abs(tv - 5.0) < 0.05:
+        return COND_INTS_50
+    return COND_INTS
 
 
 class Reader:
@@ -132,9 +146,9 @@ def _write_effect(w, e):
     w.str32(e["opt2"])
 
 
-def _read_condition(r):
+def _read_condition(r, cond_ints):
     c = {}
-    c["ints"] = [r.s32() for _ in range(COND_INTS)]
+    c["ints"] = [r.s32() for _ in range(cond_ints)]
     c["xs"] = r.str32()
     return c
 
@@ -151,6 +165,7 @@ def parse_blob(blob):
     doc = {}
     doc["version_bytes"] = r.take(8)
     doc["eff_ints"] = eff_ints_for(doc["version_bytes"])
+    doc["cond_ints"] = cond_ints_for(doc["version_bytes"])
     doc["magic0"] = r.b[r.p:r.p + 1]
     r.p += 1
     doc["n_triggers"] = r.s32()
@@ -166,7 +181,7 @@ def parse_blob(blob):
         t["effects"] = [_read_effect(r, doc["eff_ints"]) for _ in range(n_eff)]
         t["eff_order"] = [r.s32() for _ in range(n_eff)]
         n_cond = r.s32()
-        t["conditions"] = [_read_condition(r) for _ in range(n_cond)]
+        t["conditions"] = [_read_condition(r, doc["cond_ints"]) for _ in range(n_cond)]
         t["cond_order"] = [r.s32() for _ in range(n_cond)]
         doc["triggers"].append(t)
     doc["tail_order"] = [r.s32() for _ in range(doc["n_triggers"])]

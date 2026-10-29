@@ -15,24 +15,32 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from AoE2ScenarioParser.scenarios.aoe2_de_scenario import AoE2DEScenario
 AoE2DEScenario._validate_latest_trigger_data_version = lambda self, v: None
 
-from analyze_t39 import grab_blob, find_triggers_offset, get_blob_rw
+import grab_any
+from analyze_t39 import get_blob_rw
 
 NO_ANCHOR = "NO_ANCHOR"
 
 
 def check(path):
-    """返回 (roundtrip_ok, tv, n_triggers)；grab 失败返回 None。"""
-    data, tv = grab_blob(path)
+    """返回 (roundtrip_ok, tv, n_triggers)；grab 失败返回 None。
+
+    ASP 对象层不可用（1.59 / 1.54 硬拦）自动走手动解压路径（grab_any）。
+    """
+    try:
+        g = grab_any.grab_any(path)
+    except Exception:
+        return None
+    data, tv = g.data, g.tv
     if data is None:
         return None
-    hits = find_triggers_offset(data, tv or 3.9)
-    if not hits:
+    try:
+        off, magic, cnt = grab_any.pick_anchor(data, tv or 3.9)
+        rw = get_blob_rw(tv)
+        blob = data[off:]
+        doc = rw.parse_blob(blob)
+        return (rw.render_blob(doc) == blob, tv, cnt)
+    except Exception:
         return (NO_ANCHOR, tv, 0)
-    off, magic, cnt = hits[0]
-    rw = get_blob_rw(tv)
-    blob = data[off:]
-    doc = rw.parse_blob(blob)
-    return (rw.render_blob(doc) == blob, tv, cnt)
 
 
 if __name__ == "__main__":

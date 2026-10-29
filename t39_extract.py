@@ -16,14 +16,16 @@ from AoE2ScenarioParser.scenarios.aoe2_de_scenario import AoE2DEScenario
 
 AoE2DEScenario._validate_latest_trigger_data_version = lambda self, v: None
 
-from analyze_t39 import grab_blob, find_triggers_offset, get_blob_rw
+import grab_any
+from analyze_t39 import find_triggers_offset, get_blob_rw
 
 
 def extract(scen_path):
     """版本自适应：3.9 与 4.x 场景均可；导出前先做逐字节 roundtrip 自检。"""
-    data, tv = grab_blob(scen_path)
+    g = grab_any.grab_any(scen_path)
+    data, tv = g.data, g.tv
     rw = get_blob_rw(tv)
-    off, instr, cnt = find_triggers_offset(data, tv or 3.9)[0]
+    off, instr, cnt = grab_any.pick_anchor(data, tv or 3.9)
     blob = data[off:]
     doc = rw.parse_blob(blob)
     assert rw.render_blob(doc) == blob, "roundtrip failed (tv=%s)" % tv

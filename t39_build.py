@@ -60,9 +60,13 @@ def find_compress_start(raw, data):
 
 
 def build(src, texts_json, dst, msgs_trans=None):
-    data, tv, sections = grab(src)
-    rw = get_blob_rw(tv)  # 3.9 -> t39_blob_rw, 4.x -> t47_blob_rw
-    off, instr, cnt = find_triggers_offset(data, tv or 3.9)[0]
+    import grab_any
+    import msgs_rw
+
+    g = grab_any.grab_any(src)
+    data, tv, sections, zoff, mode = g.data, g.tv, g.sections, g.zoff, g.mode
+    rw = get_blob_rw(tv)  # 3.9 -> t39_blob_rw, 4.x/5.x -> t47_blob_rw
+    off, instr, cnt = grab_any.pick_anchor(data, tv or 3.9)
     blob = data[off:]
 
     items = json.load(open(texts_json, encoding="utf-8"))
@@ -96,24 +100,30 @@ def build(src, texts_json, dst, msgs_trans=None):
 
     # ---- Messages section 替换（若提供翻译）----
     if msgs_trans:
-        msgs = sections["Messages"]
-        old_bytes = msgs.get_data_as_bytes()
-        midx = new_data.find(old_bytes)
-        if midx < 0:
-            raise ValueError("Messages section bytes not located")
-        for k, v in msgs_trans.items():
-            setattr(msgs, k, v)
-        new_msgs = msgs.get_data_as_bytes()
-        new_data = new_data[:midx] + new_msgs + new_data[midx + len(old_bytes):]
-        print("messages replaced @0x%x: %d -> %d bytes" % (midx, len(old_bytes), len(new_msgs)))
+        if sections and "Messages" in sections:
+            msgs = sections["Messages"]
+            old_bytes = msgs.get_data_as_bytes()
+            midx = new_data.find(old_bytes)
+            if midx < 0:
+                raise ValueError("Messages section bytes not located")
+            for k, v in msgs_trans.items():
+                setattr(msgs, k, v)
+            new_msgs = msgs.get_data_as_bytes()
+            new_data = new_data[:midx] + new_msgs + new_data[midx + len(old_bytes):]
+            print("messages replaced (asp) @0x%x: %d -> %d bytes" % (midx, len(old_bytes), len(new_msgs)))
+        else:
+            # 手动路径（1.59 / ASP 硬拦文件）：msgs_rw 定位 + u16 布局重建
+            trans = {}
+            for k, v in (msgs_trans or {}).items():
+                trans[k.replace("ascii_", "")] = v
+            limit = off  # Messages 必在 trigger blob 之前
+            new_data, mstart, mold = msgs_rw.replace_translated(new_data, trans, limit_off=limit)
+            print("messages replaced (manual) @0x%x: %d -> %d bytes" % (mstart, mold, mold))
 
     raw = open(src, "rb").read()
-    x = find_compress_start(raw, data)
-    deflate = zlib.compressobj(9, zlib.DEFLATED, -zlib.MAX_WBITS)
-    packed = deflate.compress(new_data) + deflate.flush()
-    open(dst, "wb").write(raw[:x] + packed)
-    print("applied %d translations | blob %d -> %d bytes | file %d -> %d bytes"
-          % (applied, len(blob), len(new_blob), len(raw), len(raw[:x]) + len(packed)))
+    out_size = grab_any.pack(raw, zoff, new_data, dst)
+    print("applied %d translations | blob %d -> %d bytes | file %d -> %d bytes | mode=%s"
+          % (applied, len(blob), len(new_blob), len(raw), out_size, mode))
     return applied
 
 

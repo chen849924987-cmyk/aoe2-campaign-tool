@@ -45,12 +45,20 @@ def apply_dict(items, extra):
 
 
 def verify(path):
-    d, tv, secs = grab(path)
+    import grab_any
+    import msgs_rw
+    g = grab_any.grab_any(path)
+    d, tv, secs = g.data, g.tv, g.sections
     rw = get_blob_rw(tv)
     fields = ("ascii_instructions", "ascii_hints", "ascii_victory", "ascii_loss", "ascii_history", "ascii_scouts")
-    paren_ok = all("\uff08" not in getattr(secs["Messages"], a, "")
-                   and "\uff09" not in getattr(secs["Messages"], a, "") for a in fields)
-    off, _, _ = find_triggers_offset(d, tv or 3.9)[0]
+    if secs and "Messages" in secs:
+        paren_ok = all("\uff08" not in getattr(secs["Messages"], a, "")
+                       and "\uff09" not in getattr(secs["Messages"], a, "") for a in fields)
+    else:
+        mf = msgs_rw.read_fields(d)[0]
+        vals = [mf.get(f[len("ascii_"):], "") for f in fields]
+        paren_ok = all("\uff08" not in v and "\uff09" not in v for v in vals)
+    off, _, _ = grab_any.pick_anchor(d, tv or 3.9)
     doc = rw.parse_blob(d[off:])
     cn = tot = 0
     for t in doc["triggers"]:
