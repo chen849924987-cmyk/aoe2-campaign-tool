@@ -71,6 +71,9 @@ Harald=哈拉尔、Harald Tanglehair=乱发哈拉尔(誓约前)、Harald Finehai
 ## 凯撒三部曲（351467/310222/482016，简报/提示/目标已翻，对白为英文）
 凯撒=Caesar、庞培=Pompey、马克·安东尼=Marcus Antonius、格奈乌斯·庞培·马格努斯=Gnaeus Pompeius Magnus、小加图=Cato the Younger、提图斯·拉比努斯=Titus Labienus、合法性=Legitimacy、贵族派=Optimates（完整简报译名见 aoe2-translate\translations.py）
 
+## The Merchants Misadventures (515535, 混版 1.53×2 旧链 + 1.54×2 blob 链)
+Subotai=速不台(速不台王)、Nobunaga=信长、Tengri=腾格里、Merchant=商人、Mongol King/Mongolian King=蒙古王、Mongolian Court=蒙古王庭、Goths=哥特人、Royal Chinese=皇家中国军、mainland Chinese=中原中国军、Plains Chinese=平原中国人、Korean Prefect=朝鲜知府、Peace Guards=和平卫队、Pirate Fishermen=海盗渔夫、Masters of the Sea=海上霸主、Sea Emperor=海皇、Vacationers=度假者、Holidaymakers=度假游客、King Nataël=纳塔埃尔王、Nicolas=尼古拉、sacred relic=圣物、caravanserai=商队旅馆、watchtower=瞭望塔、Siege Onager=重型投石机、Trebuchet=巨型投石机、Trade Cart=贸易车、trade workshop=贸易工场、dungeon(作者法语 donjon=监狱义)=地牢、forge=铁匠铺、Port/Dock=船坞、canoe=独木舟、fireship=喷火船、Turtle Ship=龟船、Dragon Ship=龙船、War Galley=战船、Hussar=骠骑兵、Chemistry=化学；作者法语残留键逐字收录：Donner 5 villaegois/---falcutatif---/Marchand:/perses；M3/M4 触发文本逐字节相同，一份字典两关复用。
+
 ## 通用
 (2P Co-Op) 系列=同作者（Jaden Vance）系列：Co-Op partner must not be defeated=合作队友不可被击败、Main Objective(s)=主要目标、Side Objective(s)=次要目标、-- Main Objective Complete! --=-- 主要目标完成！ --
 
@@ -88,3 +91,23 @@ Harald=哈拉尔、Harald Tanglehair=乱发哈拉尔(誓约前)、Harald Finehai
 
 ## 征服者战役合作版（21382，场景1.41 旧格式×8，2026-09-05）
 铁锤查理=Charles Martel、阿卜杜勒·拉赫曼·加菲基=Abd ar-Rahman al-Ghafiqi、图尔=Tours、普瓦捷=Poitiers、红发埃里克=Erik the Red、诺斯战士=Norse Warrior、狼王=Ornlu(客串)、蠕虫之海=Sea of Worms、斯克雷林人=Skraelings、阿尔冈昆战士=Algonquian Warrior、哈拉尔·哈德拉达=Harald Hardrada、撒克逊人哈罗德=Harold the Saxon、征服者威廉=William the Conqueror、近卫兵=Huskarl、斯坦福桥=Stamford Bridge、怀特岛=Isle of Wight、卡帕多细亚=Cappadocia、皮西迪亚=Pisidia、加拉太=Galatia、曼齐刻尔特=Manzikert、甲胄骑兵=Cataphract、军区=Theme、塞尔柱=Seljuk、亨利五世=Henry V、圣克里斯宾节=Saint Crispian('s) Day、阿金库尔=Agincourt、阿夫勒尔=Harfleur、亚眠=Amiens、瓦延=Voyennes、弗雷旺=Frevent、索姆河=River Somme、唐·胡安=Don Juan、神圣同盟=Holy League、耶尼切里=Janissary、爱奥尼亚海=Ionian Sea、信长=Nobunaga、秀吉=Hideyoshi、京都=Kyoto、大阪=Osaka、兵库=Hyogo、李舜臣(将军)=Admiral Yi (Sun Shin)、龟船=Turtle Ship、诸葛弩兵=Chu Ku Nu、露梁=Noryang Point
+
+## 2026-10-26 批（6 役 25 关：Henry/Karluks/Merchants/Malta/Macedon/Tang）
+
+### Henry the Fowler（550911，1.59/trigger5.0×6）
+捕鸟者亨利=Henry the Fowler、萨克森=Saxon/萨人、马扎尔人=Magyars、温德人=Wends、巴伐利亚=Bavaria、士瓦本=Swabia、洛林=Lorraine、波希米亚=Bohemia、梅泽堡=Merseburg、勃兰登堡=Brandenburg、迈森=Meissen、伊迪丝=Eadgyth、萨克森罗马短剑士=Saxon Scutatus、萨克森军事改革=Saxony Military Reform
+
+### The Karluks and the Karakhanid Khanate（551457，1.59/5.0×6）
+葛逻禄=Karluks、喀喇汗=Kara-Khanid/Karakhanid Khanate、突厥=Gokturk（东突厥意）、拔悉密=Basmyl、回鹘=Uighur、突骑施=Turgesh、钦察=Qipchak/Kipchak、乌古斯=Oghuz、萨曼=Samanid、伽色尼=Ghaznavid、喀喇契丹=Kara-Khitai/Khara-Khitai、西辽=Western Liao、拔汗那=Ferghana、古恩佣兵=Qun Mercenary、答剌罕=Tarkan、怯薛=Keshik、怛罗斯河=Talas River、撒马尔罕=Samarkand、喀什=Kashgar、达布西亚=Dabusiyya、腾格里信仰=Tengrism、神恩=Barakah、黄金车=Gold Cart、商队旅馆=Caravanserai、希吉拉历=Hegira、阿尔通塔什=Altun Tash、工匠头领=Oversheer
+
+### The Merchants Misadventures（515535，1.53/3.6×2+1.54/3.9×2）
+速不台=Subotai、信长=Nobunaga、蒙古王庭=Mongolian Court、海皇=Sea Emperor、海上霸主=Masters of the Sea、和平卫队=Peace Guards、海盗渔夫=Pirate Fishermen、纳塔埃尔王=King Nataël、商队旅馆=caravanserai、龟船=Turtle Ship、龙船=Dragon Ship、贸易工场=trade workshop
+
+### Great Siege of Malta（515507，1.48/3.5×1）
+大团长让·德·拉·瓦莱特=Grand Master Jean de la Valette、穆斯塔法帕夏=Mustafa Pasha、皮亚利帕夏=Piyali Pasha、德古特=Dragut(未出场)、苏莱曼(大帝)=Suleiman the Magnificent、蒙塞拉特=Monserrate/Montserrat、安德烈亚斯·穆尼亚托内斯=Andreas Muniadones、贾科莫·博西奥=Giacomo Bosio、圣埃尔莫堡=Fort St. Elmo、圣米迦勒堡=Fort St. Michael、比尔古=Birgu、森格拉=Senglea、卡斯蒂利亚防区=Castilian defense area、普罗旺斯防区=Provence Defense Area、医院骑士团=Knights Hospitaller、热那亚舰队=Genoese Fleet、旱地行舟=dry land boating、福泽同享=Blessed together、大型商站=large trading station
+
+### The Many Kings of Macedon（515534，1.54/3.9×1）
+皮洛士=Pyrrhus、伊庇鲁斯=Epirus、马其顿=Macedon、德米特里=Demetrius、尼奥普托勒摩斯=Neoptolemus(作者拼 Neoptholemus 键照抄)、安提帕特=Antipater、亚历山大五世=Alexander V、吕西马科斯=Lysimachus、装甲骑兵=Armor Cavalry、马其顿重剑士=Macedonian Heavy Swordsman、马其顿重骑士=Macedonian Heavy Knights、米诺斯轻骑兵=Minos horse lightly armed troops、孤勇者=The Lonely Warrior
+
+### The Graceful Tang Dynasty（515502，1.51/3.5×3+1.54/3.9×4，王玄策/苏定方/刘仁轨三部曲）
+王玄策=Wang Xuance、蒋师仁=Jiang Shiren、松赞干布=Songtsen Gampo、那陵提婆=Nalingdev、尼婆罗=Nibala/Nepal、阿罗那顺=Alonashun/Aronashun、戒日帝国=Harsha Empire、茶镈和罗城=Chapo and Luocheng、遮日王一世=Chaori King I、遮娄其=Chalouqi、乌兹钢=Utz steel/wootz steel、库里刀剑士=Kukli Scimitar、吐蕃掷矛骑兵=Tubo Dart Cavalry、吐蕃长枪兵=Tibetan Pikemen、苏定方=Su Dingfang、薛仁贵=Xue Rengui、郭待封=Guo Daifeng、论钦陵(赞卓)=Gar Qinling Zan(zhuo)、苏和贵=Su Hegui、慕容诺曷钵=Murong Nuohebo、乌海城=Wuhai City、大非川=Dafeichuan、答剌罕骑兵=Tarakhan Cavalry、裴行俭=Pei Xingjian、泥涅师=Nirvana Master(波斯王子)、阿史那都支=Ashinadu branch/Ashina Duzhi、李遮匍=Li Zhepei(遮匍)/Li Zheping、萧嗣业=Xiao Siye、阿史那泥熟匐=Ashina Mud Ripe Cum/Nishugui、阿史那车薄=Ashina car thin/Chebo、王方翼=Wang Fangyi、龟兹=Kucha、于阗=Khotan、疏勒=Shule、碎叶=Broken Leaf(Suiye)、三姓咽面=Yanmian of Three Surnames(葛逻禄)、回纥=Huihe、回鹘=Uighur、铁勒=Tierra(Tiele)、刘仁轨=Liu Rengui、金元述=Jin Yuanshu、剑牟岑=Jian Moucen、安舜=An Shun、李金星=Li Jinxing、报德国=Germany(傀儡政权，音译自报德)、高句丽复国军=Goguryeo Revival Army、买肖城=Maixiao City(作者拼 Maishaw/Maixiao)、七重城=Sevenfold City、周留城=Zhouliu Castle、白江口=Baijiangkou/Baekganggu、耽罗=Tamra、安昙比罗夫=Azumi/Azamirafu、阿倍比罗夫=Abe Hirafu、鬼室福信=Onimuro Fukunobu(原文如此)、金庾信=Kim Yu-shin/Jin Yuxin、金春秋=Jin Chunqiu、阶伯=Jiebo/Uncle Jie、黑齿常之=black teeth/Hei Te Changzhi、扶余义慈=Buyeo Yiji/Fuyu Yiji、花郎=Hwarang、玄甲军=Xuanjia Army、唐刀武士=Tang Sword Samurai、府兵制=Fu Military System/Mansion military system、抛石战船=Sling Battleship、龙船=dragon boats、熊津=Ungjin、安东都护府=Anton Protectorate
